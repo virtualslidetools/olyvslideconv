@@ -1,0 +1,149 @@
+#------------------------------------------------------------------------------
+# What is this?
+#-----------------------------------------------------------------------------
+# An Olympus/Bacus ini jpeg dataset convertor to TIFF/SVS format or 
+# Google Maps jpeg dataset format.
+# It is used for converting a directory of jpg files with two or more of their
+# accompanying  "FinalScan.ini", "FinalCond.ini", "SlideScan.ini", 
+# "SlideCond.ini" files to convert into a set of Google Maps jpeg files
+# readable by leaflet or the Google Maps javascript API.
+# The TIFF/SVS files are readable by Aperio ImageScope and
+# the open source library libopenslide.
+
+#-----------------------------------------------------------------------------
+# Instructions for compiling olyvslideconv:
+#-----------------------------------------------------------------------------
+# Go to method 1 right below to use msys2 on Windows to build olyvslideconv.
+# Skip to method 2 if you are using Visual Studio.
+# Skip to method 3 if you are using RedHat/CentOS/Scientific Linux.
+# Skip to usage notes at the bottom of this document if you are interested
+# in how to use the command line program.
+
+# Every line in this file that starts with a # (pound symbol) is not meant to
+# be typed into a shell prompt (unix or msys2) or command prompt 
+# (windows/visual studio)
+
+# ----------------------------------------------------------------------------
+# METHOD 1 - Compiling olyvslideconv on Windows 8/10 with msys2
+# ----------------------------------------------------------------------------
+# Install MSYS2. Download the package from here: 
+# http://www.msys2.org/
+
+# 'pacman' is the command line package manager for MSYS2. 
+# Update the MSYS2 system, then close your MSYS2 window:
+
+pacman -Syu
+
+# Reopen the MSYS2 window, and update all the other packages:
+pacman -Syu
+
+# Install gcc/g++ compilers:
+pacman -S mingw64/mingw-w64-x86_64-gcc
+
+# Install mingw64 'make' command:
+pacman -S mingw64/mingw-w64-x86_64-make
+
+# Install 'cmake' command:
+pacman -S mingw64/mingw-w64-x86_64-cmake
+
+# and MSYS2 'make' command:
+pacman -S make
+
+# Install pkg-config:
+pacman -S msys/pkg-config
+
+# Install libtiff:
+pacman -S mingw64/mingw-w64-x86_64-libtiff
+
+# Install minizip:
+pacman -S mingw64/mingw-w64-x86_64-minizip2
+
+# Install opencv (this will also grab the libtiff and libjpeg-turbo 
+dependacies):
+pacman -S mingw64/mingw-w64-x86_64-opencv
+
+# Install git if you plan on getting the code through git:
+pacman -S git
+
+# If you haven't already downloaded the source code for olyvslideconv
+# grab it here:
+git clone https://github.com/paulrichards321/olyvslideconv.git
+
+# Compile it by typing:
+cd olyvslideconv
+mkdir build
+cd build
+cmake -G 'Unix Makefiles' ..
+make
+
+# You should have a executable olyvslideconv.exe. When moving the
+# executable to another system or not executing in a MSYS2 or Mingw shell 
+# you will need to also supply the MSYS2 dlls for opencv, libjpeg-turbo, 
+# and libtiff, and some other generic C/C++ runtime MSYS2 dlls.
+
+# -----------------------------------------------------------------------------
+# METHOD 2: Compiling olyvslideconv on Redhat/CentOS/Scientific Linux 8 or 7
+# -----------------------------------------------------------------------------
+# Install git and development tools if you haven't done so already
+sudo yum install git
+sudo yum groupinstall 'Development Tools'
+
+# Install libjpeg, libtiff, and ncurses:
+sudo yum install libjpeg-turbo-devel libtiff-devel ncurses-devel
+
+# If on Redhat/CentOS/Scientific Linux 8 you can easily grab minizip
+sudo yum install minizip-devel
+
+# Otherwise if you are on version 7 or earlier you will need to build it
+# Follow the below block of instructions to build it if needed
+# otherwise safe to skip this part
+git clone https://github.com/nmoinvaz/minizip
+cd minizip
+mkdir build
+cd build
+cmake3 ..
+make
+sudo make install
+
+# -- BUILD OPENCV OR DOWNLOAD DEVELOPMENT RPM FOR IT --
+# You will need opencv >= 4. You can either find a place to grab or build it using these directions:
+sudo yum install cmake pkgconfig
+sudo yum install libpng-devel jasper-devel openexr-devel libwebp-devel
+sudo yum install libdc1394-devel libv4l-devel gstreamer-plugins-base-devel
+sudo yum install tbb-devel eigen3-devel
+
+# Now grab the opencv source:
+git clone https://github.com/opencv/opencv.git
+cd opencv
+
+# Now specify a stable version of opencv. 4.1.2 works fine:
+git checkout 4.1.2
+cd ..
+mkdir opencv-build
+cd opencv-build
+cmake3 -D CMAKE_BUILD_TYPE=RELEASE -D OPENCV_GENERATE_PKGCONFIG ../opencv/
+make
+sudo make install
+
+# When you build opencv manually, it places it's library files in 
+# /usr/local/lib64. You will need /usr/local/lib64 in your LD Path if it 
+# isn't already there. You can add this by dropped adding a file in 
+# /etc/ld.so.conf called usrlocallib64.conf:
+sudo sh -c 'echo "/usr/local/lib64" > /etc/ld.so.conf.d/usrlocallib64.conf'
+
+# Run ldconfig:
+sudo ldconfig
+
+# Now go back to your olyvslideconv directory:
+cd ..
+
+# -- GRAB THE SOURCE IF YOU HAVEN'T ALREADY AND COMPILE --
+git clone https://github.com/paulrichards321/olyvslideconv.git
+mkdir olyvslideconv-build
+cd olyvslideconv-build
+cmake3 ../olyvslideconv
+make
+
+# -- INSTALL THE PROGRAM --
+sudo make install
+
